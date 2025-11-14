@@ -137,11 +137,11 @@
         window.addEventListener('load', function() {
             const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
             
-            if (!currentUser) {
-                // No user logged in, redirect to sign in
-                window.location.href = './fit-map signin.html';
-                return;
-            }
+            // if (!currentUser) {
+            //     // No user logged in, redirect to sign in
+            //     window.location.href = './fit-map signin.html';
+            //     return;
+            // }
 
             // Display user info
             displayUserInfo(currentUser);
