@@ -232,6 +232,11 @@ For support, email support@fitmap.com or open an issue in the GitHub repository.
 
 ---
 
-**Made with 💪 by [Samuel Ifiok Daniel]**
+**Made with 💪 by:
+[Samuel Ifiok Daniel]
+[Saviour Koki]
+[Wilson Albert]
+[Ugopadou Ebi]
+[Oritom Braide]**
 
-*Last Updated: January 2025*
+*Last Updated: November 2025*
