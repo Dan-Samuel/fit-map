@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FitMap - Onboarding</title>
+    <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+    <div class="carousel-container">
+        <button class="skip-button" onclick="skipOnboarding()" id="skipBtn">Skip</button>
+
+        <div class="carousel-track" id="carouselTrack">
+            <!-- Slide 1: Book a Gym -->
+            <div class="slide slide-1">
+                <div class="background-image"></div>
+                <div class="content-card">
+                    <div class="content-text">
+                        <h1 class="content-title">Book a Gym</h1>
+                        <p class="content-description">
+                            Book a nearby gym, choose the best that fits your routine
+                        </p>
+                    </div>
+                    
+                    <div class="pagination-dots">
+                        <div class="dot active" onclick="goToSlide(0)"></div>
+                        <div class="dot inactive" onclick="goToSlide(1)"></div>
+                        <div class="dot inactive" onclick="goToSlide(2)"></div>
+                    </div>
+                    
+                    <button class="action-button" onclick="nextSlide()">Next</button>
+                </div>
+            </div>
+
+            <!-- Slide 2: Find your Trainer -->
+            <div class="slide slide-2">
+                <div class="background-image"></div>
+                <div class="content-card">
+                    <div class="content-text">
+                        <h1 class="content-title">Find your Trainer</h1>
+                        <p class="content-description">
+                            Get hands-on training from the best trainer in your city
+                        </p>
+                    </div>
+                    
+                    <div class="pagination-dots">
+                        <div class="dot inactive" onclick="goToSlide(0)"></div>
+                        <div class="dot active" onclick="goToSlide(1)"></div>
+                        <div class="dot inactive" onclick="goToSlide(2)"></div>
+                    </div>
+                    
+                    <button class="action-button" onclick="nextSlide()">Next</button>
+                </div>
+            </div>
+
+            <!-- Slide 3: Track Your Activity -->
+            <div class="slide slide-3">
+                <div class="background-image"></div>
+                <div class="content-card">
+                    <div class="content-text">
+                        <h1 class="content-title">Track Your Activity</h1>
+                        <p class="content-description">
+                            Keep your heart rate up, burn the calories, feel the energy
+                        </p>
+                    </div>
+                    
+                    <div class="pagination-dots">
+                        <div class="dot inactive" onclick="goToSlide(0)"></div>
+                        <div class="dot inactive" onclick="goToSlide(1)"></div>
+                        <div class="dot active" onclick="goToSlide(2)"></div>
+                    </div>
+                    
+                    <button class="action-button" onclick="nextSlide()">Get Started</button>
+                </div>
+            </div>
+
+            <!-- Slide 4: User Type Selection -->
+            <div class="slide slide-4">
+                <div class="background-image"></div>
+                <div class="content-card">
+                    <h1 class="content-title">Who are you registering as?</h1>
+                    
+                    <div class="option-buttons">
+                       <a href="./fit-map signup.html"> 
+                            <button class="action-button" onclick="selectUserType('gym-centre')">
+                                A Gym Centre
+                            </button>
+                        </a>
+                        <a href="./fit-map signup.html">
+                            <button class="action-button" onclick="selectUserType('gym-user')">
+                            A Gym User
+                        </button>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        const totalSlides = 4;
+
+        function updateCarousel() {
+            const track = document.getElementById('carouselTrack');
+            track.style.transform = `translateX(-${currentSlide * 25}%)`;
+            
+            // Update skip button visibility
+            const skipBtn = document.getElementById('skipBtn');
+            skipBtn.style.display = currentSlide === totalSlides - 1 ? 'none' : 'block';
+            
+            // Update pagination dots (only for first 3 slides)
+            updatePaginationDots();
+        }
+
+        function updatePaginationDots() {
+            // Only update dots for the first 3 slides
+            if (currentSlide < 3) {
+                const currentSlideDots = document.querySelectorAll(`.slide:nth-child(${currentSlide + 1}) .dot`);
+                currentSlideDots.forEach((dot, index) => {
+                    dot.className = index === currentSlide ? 'dot active' : 'dot inactive';
+                });
+            }
+        }
+
+        function nextSlide() {
+            if (currentSlide < totalSlides - 1) {
+                currentSlide++;
+                updateCarousel();
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 0) {
+                currentSlide--;
+                updateCarousel();
+            }
+        }
+
+        function goToSlide(slideIndex) {
+            if (slideIndex >= 0 && slideIndex < 3) { // Only allow navigation to first 3 slides
+                currentSlide = slideIndex;
+                updateCarousel();
+            }
+        }
+
+        function skipOnboarding() {
+            console.log('Skipping to registration...');
+            // Go directly to registration page (slide 4)
+            currentSlide = 3;
+            updateCarousel();
+        }
+
+        function selectUserType(userType) {
+            console.log('Selected user type:', userType);
+            
+            // Add visual feedback
+            event.target.style.transform = 'scale(0.98)';
+            setTimeout(() => {
+                event.target.style.transform = 'scale(1)';
+            }, 150);
+            
+            // Navigate based on selection
+            if (userType === 'gym-centre') {
+                console.log('Navigating to gym centre registration...');
+            } else if (userType === 'gym-user') {
+                console.log('Navigating to gym user registration...');
+            }
+        }
+
+        // Touch/Swipe functionality
+        let startX = 0;
+        let startY = 0;
+
+        document.addEventListener('touchstart', function(e) {
+            startX = e.touches[0].clientX;
+            startY = e.touches[0].clientY;
+        });
+
+        document.addEventListener('touchend', function(e) {
+            if (!startX || !startY) return;
+
+            let endX = e.changedTouches[0].clientX;
+            let endY = e.changedTouches[0].clientY;
+
+            let deltaX = startX - endX;
+            let deltaY = startY - endY;
+
+            // Only swipe if horizontal movement is greater than vertical
+            if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
+                if (deltaX > 0) {
+                    nextSlide();
+                } else {
+                    prevSlide();
+                }
+            }
+
+            startX = 0;
+            startY = 0;
+        });
+
+        // Keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'ArrowRight') {
+                nextSlide();
+            } else if (e.key === 'ArrowLeft') {
+                prevSlide();
+            }
+        });
+
+        // Initialize carousel
+        updateCarousel();
+    </script>
+</body>
+</html>

@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FitMap - Verify Code</title>
+    <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+    <div class="verify-screen">
+        <button class="back-button" onclick="goBack()">
+            <img src="./Resources/Resource Icons/icons8-back-arrow-50.png" alt="back-arrow">
+        </button>
+
+        <div class="code-verification-header">
+            <div class="logo-container">
+                <div class="dumbbell-icon">
+                    <img src="./Resources/Resource Images/53819-removebg-preview.png" alt="">
+                </div>
+            </div>
+        </div>
+
+        <div class="content-card">
+            <h1 class="verify-title">Check Your Inbox</h1>
+            <p class="verify-description" id="verifyDescription">
+                We've sent a 6 digit code to your email. Enter it below to verify your identity
+            </p>
+
+            <div class="code-inputs">
+                <input type="text" class="code-input" maxlength="1" id="code1" inputmode="numeric">
+                <input type="text" class="code-input" maxlength="1" id="code2" inputmode="numeric">
+                <input type="text" class="code-input" maxlength="1" id="code3" inputmode="numeric">
+                <input type="text" class="code-input" maxlength="1" id="code4" inputmode="numeric">
+                <input type="text" class="code-input" maxlength="1" id="code5" inputmode="numeric">
+                <input type="text" class="code-input" maxlength="1" id="code6" inputmode="numeric">
+            </div>
+
+            <p class="resend-text" id="resendText">
+                You can <span class="resend-link disabled" id="resendLink" onclick="resendCode()">resend the code</span> in <span id="countdown">60</span> seconds
+            </p>
+
+            <div class="error-message" id="errorMessage" style="display: none;">
+                Invalid code. Please try again.
+            </div>
+
+            <div class="success-message" id="successMessage" style="display: none;">
+                Code verified successfully! Redirecting...
+            </div>
+
+            <button class="verify-button" id="verifyButton" onclick="verifyCode()" disabled>Verify Code</button>
+        </div>
+    </div>
+
+    <script>
+        let countdown = 60;
+        let countdownInterval;
+        let currentCode = '';
+        let storedCode = '';
+        let resetEmail = '';
+
+        // Check if user came from reset password page
+        window.addEventListener('load', function() {
+            resetEmail = localStorage.getItem('resetEmail');
+            storedCode = localStorage.getItem('resetCode');
+            const timestamp = localStorage.getItem('resetCodeTimestamp');
+
+            if (!resetEmail || !storedCode || !timestamp) {
+                // No reset session found, redirect back
+                alert('No password reset session found. Please start the process again.');
+                window.location.href = './fit-map reset password.html';
+                return;
+            }
+
+            // Check if code is expired (10 minutes)
+            const timeElapsed = Date.now() - parseInt(timestamp);
+            const tenMinutes = 10 * 60 * 1000;
+
+            if (timeElapsed > tenMinutes) {
+                alert('Verification code has expired. Please request a new one.');
+                localStorage.removeItem('resetEmail');
+                localStorage.removeItem('resetCode');
+                localStorage.removeItem('resetCodeTimestamp');
+                window.location.href = './fit-map reset password.html';
+                return;
+            }
+
+            // Update description with masked email
+            const maskedEmail = maskEmail(resetEmail);
+            document.getElementById('verifyDescription').textContent = 
+                `We've sent a 6 digit code to ${maskedEmail}. Enter it below to verify your identity`;
+
+            // Start countdown
+            startCountdown();
+
+            // Focus first input
+            document.getElementById('code1').focus();
+        });
+
+        function maskEmail(email) {
+            const [username, domain] = email.split('@');
+            if (username.length <= 3) {
+                return `${username[0]}***@${domain}`;
+            }
+            return `${username.slice(0, 2)}***${username.slice(-1)}@${domain}`;
+        }
+
+        function startCountdown() {
+            const countdownEl = document.getElementById('countdown');
+            const resendLink = document.getElementById('resendLink');
+            
+            resendLink.classList.add('disabled');
+            
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+            }
+            
+            countdownInterval = setInterval(() => {
+                countdown--;
+                countdownEl.textContent = countdown;
+                
+                if (countdown <= 0) {
+                    clearInterval(countdownInterval);
+                    resendLink.classList.remove('disabled');
+                    document.getElementById('resendText').innerHTML = 
+                        'You can <span class="resend-link" id="resendLink" onclick="resendCode()">resend the code</span> now';
+                }
+            }, 1000);
+        }
+
+        function goBack() {
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+            }
+            window.location.href = './fit-map reset password.html';
+        }
+
+        function resendCode() {
+            const resendLink = document.getElementById('resendLink');
+            if (resendLink.classList.contains('disabled')) return;
+            
+            // Generate new code
+            const newCode = Math.floor(100000 + Math.random() * 900000).toString();
+            localStorage.setItem('resetCode', newCode);
+            localStorage.setItem('resetCodeTimestamp', Date.now().toString());
+            storedCode = newCode;
+            
+            // Show toast with new code (for demo)
+            showToast(`New code sent! (Code: ${newCode} - For demo purposes)`);
+            
+            // Reset countdown
+            countdown = 60;
+            document.getElementById('resendText').innerHTML = 
+                'You can <span class="resend-link disabled" id="resendLink" onclick="resendCode()">resend the code</span> in <span id="countdown">60</span> seconds';
+            startCountdown();
+            
+            // Clear inputs and hide messages
+            clearInputs();
+            hideError();
+            hideSuccess();
+        }
+
+        function clearInputs() {
+            const inputs = document.querySelectorAll('.code-input');
+            inputs.forEach(input => {
+                input.value = '';
+                input.classList.remove('filled');
+                input.classList.remove('error');
+            });
+            currentCode = '';
+            updateVerifyButton();
+            document.getElementById('code1').focus();
+        }
+
+        function showError(message = 'Invalid code. Please try again.') {
+            const errorEl = document.getElementById('errorMessage');
+            errorEl.textContent = message;
+            errorEl.style.display = 'block';
+            
+            // Add error class to inputs
+            document.querySelectorAll('.code-input').forEach(input => {
+                input.classList.add('error');
+            });
+            
+            // Clear inputs after showing error
+            setTimeout(() => {
+                clearInputs();
+            }, 1500);
+        }
+
+        function hideError() {
+            document.getElementById('errorMessage').style.display = 'none';
+            document.querySelectorAll('.code-input').forEach(input => {
+                input.classList.remove('error');
+            });
+        }
+
+        function showSuccess() {
+            document.getElementById('successMessage').style.display = 'block';
+        }
+
+        function hideSuccess() {
+            document.getElementById('successMessage').style.display = 'none';
+        }
+
+        function updateVerifyButton() {
+            const button = document.getElementById('verifyButton');
+            button.disabled = currentCode.length !== 6;
+        }
+
+        function verifyCode() {
+            hideError();
+            hideSuccess();
+            
+            if (currentCode.length !== 6) {
+                showError('Please enter all 6 digits.');
+                return;
+            }
+            
+            console.log('Verifying code:', currentCode);
+            console.log('Stored code:', storedCode);
+            
+            // Verify code matches
+            if (currentCode === storedCode) {
+                console.log('Code verified successfully!');
+                showSuccess();
+                
+                // Mark code as verified
+                localStorage.setItem('codeVerified', 'true');
+                
+                // Redirect to create new password page
+                setTimeout(() => {
+                    window.location.href = './fit-map create new password.html';
+                }, 1500);
+            } else {
+                showError('Invalid code. Please try again.');
+            }
+        }
+
+        // Handle code input
+        document.querySelectorAll('.code-input').forEach((input, index) => {
+            input.addEventListener('input', function(e) {
+                hideError();
+                hideSuccess();
+                
+                // Only allow numbers
+                this.value = this.value.replace(/[^0-9]/g, '');
+                
+                if (this.value) {
+                    this.classList.add('filled');
+                    
+                    // Auto focus next input
+                    if (index < 5) {
+                        document.getElementById(`code${index + 2}`).focus();
+                    }
+                } else {
+                    this.classList.remove('filled');
+                }
+                
+                // Update current code
+                currentCode = '';
+                document.querySelectorAll('.code-input').forEach(inp => {
+                    currentCode += inp.value;
+                });
+                
+                updateVerifyButton();
+                
+                // Auto verify when all fields are filled
+                if (currentCode.length === 6) {
+                    setTimeout(() => verifyCode(), 500);
+                }
+            });
+            
+            input.addEventListener('keydown', function(e) {
+                // Handle backspace
+                if (e.key === 'Backspace' && !this.value && index > 0) {
+                    document.getElementById(`code${index}`).focus();
+                }
+                
+                // Handle paste
+                if (e.key === 'v' && (e.ctrlKey || e.metaKey)) {
+                    e.preventDefault();
+                    navigator.clipboard.readText().then(text => {
+                        const digits = text.replace(/[^0-9]/g, '').slice(0, 6);
+                        digits.split('').forEach((digit, i) => {
+                            const inp = document.getElementById(`code${i + 1}`);
+                            if (inp) {
+                                inp.value = digit;
+                                inp.classList.add('filled');
+                            }
+                        });
+                        currentCode = digits;
+                        updateVerifyButton();
+                        if (digits.length === 6) {
+                            setTimeout(() => verifyCode(), 500);
+                        }
+                    });
+                }
+            });
+
+            // Handle focus
+            input.addEventListener('focus', function() {
+                this.select();
+            });
+        });
+
+        function showToast(message) {
+            const existingToast = document.querySelector('.toast-message');
+            if (existingToast) {
+                existingToast.remove();
+            }
+            
+            const toast = document.createElement('div');
+            toast.className = 'toast-message';
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background-color: rgba(0, 0, 0, 0.8);
+                color: white;
+                padding: 12px 24px;
+                border-radius: 25px;
+                font-size: 14px;
+                z-index: 9999;
+                animation: slideDown 0.3s ease-out;
+            `;
+            toast.textContent = message;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'slideUp 0.3s ease-out';
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+
+        // Initialize verify button state
+        updateVerifyButton();
+
+        // Add CSS
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideDown {
+                from {
+                    top: -50px;
+                    opacity: 0;
+                }
+                to {
+                    top: 20px;
+                    opacity: 1;
+                }
+            }
+            
+            @keyframes slideUp {
+                from {
+                    top: 20px;
+                    opacity: 1;
+                }
+                to {
+                    top: -50px;
+                    opacity: 0;
+                }
+            }
+
+            .code-input.filled {
+                background-color: #e8d5f0;
+                border-color: #7c3aed;
+            }
+
+            .code-input.error {
+                border-color: #ff4444;
+                background-color: #ffe0e0;
+                animation: shake 0.4s;
+            }
+
+            @keyframes shake {
+                0%, 100% { transform: translateX(0); }
+                25% { transform: translateX(-10px); }
+                75% { transform: translateX(10px); }
+            }
+
+            .resend-link.disabled {
+                color: #999;
+                cursor: not-allowed;
+                pointer-events: none;
+            }
+
+            .resend-link {
+                color: #7c3aed;
+                cursor: pointer;
+                text-decoration: underline;
+            }
+
+            .resend-link:hover:not(.disabled) {
+                color: #6d28d9;
+            }
+
+            .error-message {
+                background-color: #ff4444;
+                color: white;
+                padding: 12px;
+                border-radius: 8px;
+                margin-top: 15px;
+                text-align: center;
+            }
+
+            .success-message {
+                background-color: #00C851;
+                color: white;
+                padding: 12px;
+                border-radius: 8px;
+                margin-top: 15px;
+                text-align: center;
+            }
+
+            .verify-button:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
