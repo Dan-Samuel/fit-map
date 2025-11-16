@@ -1381,7 +1381,7 @@ body {
             padding: 30px;
             position: relative;
             overflow: hidden;
-            min-height: 240px;
+            min-height: 260px;
         }
 
         .hero-card::after {
