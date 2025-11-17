@@ -346,14 +346,7 @@
 
         let currentSearchLocation = 'Woji, Port Harcourt';
 
-        // Check authentication
-        window.addEventListener('load', function() {
-            const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
-            
-            if (!currentUser) {
-                window.location.href = './fit-map signin.html';
-                return;
-            }
+       
 
             // Load saved location
             const savedLocation = localStorage.getItem('userLocation') || 'Woji, Port Harcourt';
@@ -366,7 +359,7 @@
             
             // Set active nav item
             setActiveNavItem('location');
-        });
+        
 
         function loadMapMarkers() {
             const markersContainer = document.getElementById('gymMarkers');
